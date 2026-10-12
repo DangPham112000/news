@@ -1,0 +1,12 @@
+{
+  "name": "news",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "News aggregator: storage and REST API (M1)",
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/server.js",
+    "test": "node --disable-warning=ExperimentalWarning --test \"test/*.test.js\""
+  }
+}
