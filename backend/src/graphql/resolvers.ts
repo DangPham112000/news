@@ -1,9 +1,13 @@
 import { GraphQLError } from 'graphql';
+import { allowRequest, type ApiKeyInfo } from '../apiKeys.js';
 import { clampPaging, upsertNews } from '../articles.js';
 import { getDataSource } from '../data/index.js';
 import { ValidationError } from '../validate.js';
 
-export interface Context {}
+export interface Context {
+  /** The API key of the caller, or null when the request has none. */
+  agent: ApiKeyInfo | null;
+}
 
 export const resolvers = {
   Query: {
@@ -16,7 +20,13 @@ export const resolvers = {
       }),
   },
   Mutation: {
-    upsertArticles: async (_: unknown, args: { topic: string; articles: unknown[] }) => {
+    upsertArticles: async (_: unknown, args: { topic: string; articles: unknown[] }, ctx: Context) => {
+      if (!ctx.agent) {
+        throw new GraphQLError('A valid API key is required to add news', { extensions: { code: 'UNAUTHENTICATED' } });
+      }
+      if (!allowRequest(ctx.agent.id)) {
+        throw new GraphQLError('Rate limit exceeded', { extensions: { code: 'RATE_LIMITED' } });
+      }
       try {
         return await upsertNews(args.topic, args.articles);
       } catch (err) {

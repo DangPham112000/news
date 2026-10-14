@@ -8,11 +8,13 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsx --watch src/index.ts",
+    "apikey": "tsx src/cli/apikey.ts",
     "dev:mock": "cross-env USE_MOCK=true tsx --watch src/index.ts"
   },
   "dependencies": {
     "@apollo/server": "^5.5.1",
     "@as-integrations/express5": "^1.1.2",
+    "@modelcontextprotocol/sdk": "^1.32.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",

@@ -6,6 +6,8 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { typeDefs } from './graphql/typeDefs.js';
 import { resolvers, type Context } from './graphql/resolvers.js';
+import { bearerToken, createApiKey, verifyApiKey } from './apiKeys.js';
+import { handleMcpNotAllowed, handleMcpPost } from './mcp/http.js';
 
 dotenv.config();
 
@@ -17,6 +19,8 @@ async function startServer() {
   // Connect to MongoDB only in non-mock mode
   if (useMock) {
     console.log('🧪 Running in MOCK mode — no database connection');
+    const { key } = await createApiKey('dev');
+    console.log(`🔑 Dev API key (memory only): ${key}`);
   } else {
     const mongoUri = process.env.MONGODB_URI;
     if (!mongoUri) {
@@ -32,11 +36,24 @@ async function startServer() {
   const server = new ApolloServer<Context>({ typeDefs, resolvers });
   await server.start();
 
-  app.use('/graphql', cors<cors.CorsRequest>(), express.json({ limit: '1mb' }), expressMiddleware(server));
+  app.use(
+    '/graphql',
+    cors<cors.CorsRequest>(),
+    express.json({ limit: '1mb' }),
+    expressMiddleware(server, {
+      context: async ({ req }): Promise<Context> => ({ agent: await verifyApiKey(bearerToken(req.headers.authorization)) }),
+    }),
+  );
+
+  // MCP endpoint for AI agents, authenticated with API keys.
+  app.post('/mcp', cors<cors.CorsRequest>(), express.json({ limit: '1mb' }), handleMcpPost);
+  app.get('/mcp', handleMcpNotAllowed);
+  app.delete('/mcp', handleMcpNotAllowed);
 
   app.listen(port, () => {
     const mode = useMock ? '🧪 MOCK' : '🗄️  DB';
     console.log(`Server ready at http://localhost:${port}/graphql [${mode}]`);
+    console.log(`MCP endpoint at http://localhost:${port}/mcp`);
   });
 }
 
