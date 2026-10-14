@@ -4,14 +4,17 @@ import { ApolloServer } from '@apollo/server';
 import { typeDefs } from '../src/graphql/typeDefs.js';
 import { resolvers } from '../src/graphql/resolvers.js';
 import { resetMockData } from '../src/data/mockDataSource.js';
+import { resetMockKeys } from '../src/apiKeys.js';
 import { normalizeUrl, slugify, titleHash } from '../src/normalize.js';
 
 process.env.USE_MOCK = 'true';
 
-const server = new ApolloServer({ typeDefs, resolvers });
+const server = new ApolloServer<{ agent: any }>({ typeDefs, resolvers });
 
-async function gql(query: string, variables?: Record<string, unknown>) {
-  const res = await server.executeOperation({ query, variables });
+const agent = { id: 'key-1', name: 'test', prefix: 'nwk_xxxxxx', createdAt: new Date().toISOString() };
+
+async function gql(query: string, variables?: Record<string, unknown>, ctx: { agent: typeof agent | null } = { agent }) {
+  const res = await server.executeOperation({ query, variables }, { contextValue: ctx });
   assert.equal(res.body.kind, 'single');
   return (res.body as { singleResult: { data?: any; errors?: any[] } }).singleResult;
 }
@@ -21,7 +24,28 @@ const UPSERT = `mutation($topic: String!, $articles: [ArticleInput!]!) {
 }`;
 const a = (over: Record<string, unknown> = {}) => ({ title: 'Node 24 released', url: 'https://example.com/n24', ...over });
 
-beforeEach(() => resetMockData());
+beforeEach(() => {
+  resetMockData();
+  resetMockKeys();
+});
+
+test('upsertArticles needs an API key and is rate limited', async () => {
+  const anon = await gql(UPSERT, { topic: 'dev', articles: [a()] }, { agent: null });
+  assert.equal(anon.errors?.[0].extensions.code, 'UNAUTHENTICATED');
+  assert.equal((await gql('{ articles { total } }', undefined, { agent: null })).data.articles.total, 0);
+
+  process.env.RATE_LIMIT_PER_MIN = '2';
+  try {
+    const codes = [];
+    for (let i = 0; i < 3; i++) {
+      const r = await gql(UPSERT, { topic: 'dev', articles: [a()] });
+      codes.push(r.errors?.[0].extensions.code ?? 'ok');
+    }
+    assert.deepEqual(codes, ['ok', 'ok', 'RATE_LIMITED']);
+  } finally {
+    delete process.env.RATE_LIMIT_PER_MIN;
+  }
+});
 
 test('normalizeUrl strips tracking, fragment, trailing slash', () => {
   assert.equal(normalizeUrl('HTTPS://Example.com/a/?utm_source=x&b=2&a=1#top'), 'https://example.com/a?a=1&b=2');

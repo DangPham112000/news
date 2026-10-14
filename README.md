@@ -1,6 +1,6 @@
 # News
 
-Backend for the News app (milestone M1). Same stack as Event Manager: pnpm workspace, TypeScript, Express 5, Apollo Server (GraphQL), MongoDB with Mongoose.
+Backend for the News app (milestones M1 and M2). Same stack as Event Manager: pnpm workspace, TypeScript, Express 5, Apollo Server (GraphQL), MongoDB with Mongoose.
 
 ```
 pnpm install
@@ -22,4 +22,8 @@ mutation {
 }
 ```
 
-The topic is created on demand (slug from the name). Upserts are idempotent: URLs are normalized (tracking params, fragment, trailing slash removed) and the same normalized title within a topic is skipped as a duplicate. Invalid items (max 100 per call) are reported by index without blocking valid ones. Authentication for agents comes in M2.
+The topic is created on demand (slug from the name). Upserts are idempotent: URLs are normalized (tracking params, fragment, trailing slash removed) and the same normalized title within a topic is skipped as a duplicate. Invalid items (max 100 per call) are reported by index without blocking valid ones. `upsertArticles` needs an API key (`Authorization: Bearer nwk_...`).
+
+## AI agents (MCP)
+
+`POST /mcp` exposes `list_topics`, `list_news` and `upsert_news` to AI agents, authenticated with API keys (`pnpm --filter backend apikey create <name>`). See [docs/agent-usage.md](docs/agent-usage.md) for setup and the prompt to run periodically.
