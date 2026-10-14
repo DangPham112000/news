@@ -12,11 +12,11 @@ Deliberately the same stack as the Event Manager repo, so both are maintained th
 ## Database
 - **MongoDB** via Mongoose. Data access goes through `IDataSource` (`backend/src/data`), with an in-memory mock (`USE_MOCK=true`) for running and testing without a database.
 
-## Frontend (M3)
-React 19 + Vite, TypeScript, TailwindCSS + shadcn/ui, React Router, Apollo Client, Redux Toolkit.
+## Frontend
+React 19 + Vite, TypeScript, TailwindCSS + shadcn/ui components (`@base-ui/react`), Apollo Client (GraphQL), Redux Toolkit for UI state. React Router and lodash are not used yet: add them when a second page or a need appears.
 
-## Deployment (M3)
-Docker + Docker Compose, Nginx, GitHub Actions.
+## Deployment
+Docker + Docker Compose, Nginx (frontend container, plus the host nginx on the VPS), GitHub Actions (`ci.yml` checks, `deploy.yml` deploys on push to `main`). See `docs/deployment.md`.
 
 ## Monorepo
-pnpm workspace: `backend/` now, `frontend/` and `nginx/` later.
+pnpm workspace: `backend/` and `frontend/`, plus `nginx/` (container config).

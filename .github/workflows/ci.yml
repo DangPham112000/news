@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  check:
+    name: Typecheck, lint, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Backend typecheck and tests
+        run: |
+          pnpm --filter backend exec tsc --noEmit
+          pnpm --filter backend test
+      - name: Frontend lint and build
+        run: |
+          pnpm --filter frontend run lint
+          pnpm --filter frontend run build
