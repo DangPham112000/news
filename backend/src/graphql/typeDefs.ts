@@ -47,7 +47,14 @@ export const typeDefs = `#graphql
     invalid: [InvalidArticle!]!
   }
 
+  "The person signed in with the shared Clerk app."
+  type Viewer {
+    clerkId: ID!
+  }
+
   type Query {
+    "The signed-in person, or null. Reading news needs no sign-in."
+    me: Viewer
     topics: [Topic!]!
     "Newest first. pageSize is capped at 100."
     articles(topic: String, q: String, page: Int, pageSize: Int): ArticlePage!

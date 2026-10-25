@@ -1,5 +1,6 @@
 import { GraphQLError } from 'graphql';
 import { allowRequest, type ApiKeyInfo } from '../apiKeys.js';
+import type { Viewer } from '../auth.js';
 import { clampPaging, upsertNews } from '../articles.js';
 import { getDataSource } from '../data/index.js';
 import { ValidationError } from '../validate.js';
@@ -7,10 +8,13 @@ import { ValidationError } from '../validate.js';
 export interface Context {
   /** The API key of the caller, or null when the request has none. */
   agent: ApiKeyInfo | null;
+  /** The person signed in with Clerk, or null. Optional so tests can leave it out. */
+  viewer?: Viewer | null;
 }
 
 export const resolvers = {
   Query: {
+    me: (_: unknown, __: unknown, ctx: Context) => ctx.viewer ?? null,
     topics: () => getDataSource().getTopics(),
     articles: (_: unknown, args: { topic?: string | null; q?: string | null; page?: number | null; pageSize?: number | null }) =>
       getDataSource().getArticles({

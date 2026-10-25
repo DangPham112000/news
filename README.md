@@ -29,7 +29,11 @@ mutation {
 }
 ```
 
-The topic is created on demand (slug from the name). Upserts are idempotent: URLs are normalized (tracking params, fragment, trailing slash removed) and the same normalized title within a topic is skipped as a duplicate. Invalid items (max 100 per call) are reported by index without blocking valid ones. `upsertArticles` needs an API key (`Authorization: Bearer nwk_...`).
+The topic is created on demand (slug from the name). Upserts are idempotent: URLs are normalized (tracking params, fragment, trailing slash removed) and the same normalized title within a topic is skipped as a duplicate. Invalid items (max 100 per call) are reported by index without blocking valid ones. `upsertArticles` needs an API key (`Authorization: Bearer nwk_...`). Reading needs no sign-in; `me { clerkId }` returns the person signed in with Clerk, or null.
+
+## Sign-in
+
+Sign-in is optional. The web UI signs in with the ecosystem's shared Clerk app (`VITE_CLERK_PUBLISHABLE_KEY` at build time, `CLERK_SECRET_KEY` and `CLERK_AUTHORIZED_PARTIES` on the backend). Without a publishable key the UI runs with no sign-in, for mock mode. No user table: per-person data stores the Clerk user id.
 
 ## AI agents (MCP)
 
