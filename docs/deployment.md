@@ -6,10 +6,10 @@ Same shape as Event Manager: a VPS shared with other projects, nothing in this s
 Browser ─HTTPS─▶ Cloudflare (proxied, SSL mode "Flexible")
         ─HTTP:80─▶ host nginx (news.<domain> server block)
         ─▶ 127.0.0.1:8082 ─▶ frontend container (nginx: static SPA + /graphql, /mcp proxy)
-        ─▶ backend:4000 ─▶ mongodb:27017   (internal compose network only)
+        ─▶ backend:4000 ─▶ ecosystem-mongo:27017   (shared instance, `ecosystem` network only)
 ```
 
-- `docker-compose.yml` (project name `news`) runs `frontend`, `backend` and `mongodb`. Only `frontend` publishes a port, on `127.0.0.1:${APP_PORT:-8082}`. MongoDB has no auth and no published port.
+- `docker-compose.yml` (project name `news`) runs `frontend` and `backend`. Only `frontend` publishes a port, on `127.0.0.1:${APP_PORT:-8082}`. MongoDB is the ecosystem's shared instance (`ecosystem-mongo` from [ecosystem-infra](https://github.com/DangPham112000/ecosystem-infra), DAN-90): the backend joins the external `ecosystem` network and logs in as the `news` Mongo user with `MONGO_PASSWORD` from Doppler `news/prd`, which can only write the `news` database.
 - `nginx/default.conf` is the config of the **frontend container**: it serves the SPA and proxies `/graphql` and `/mcp` to the backend.
 - HTTPS is terminated by Cloudflare (or any TLS proxy in front of the host nginx). Agents send their API key to `/mcp`, so do not expose it over plain HTTP on the open internet.
 
@@ -55,4 +55,4 @@ Copy the printed `nwk_...` key into the agent's MCP config (see [agent-usage.md]
 ## Notes
 
 - The feed itself (GraphQL `topics` and `articles`) is readable by anyone who can reach the site; signing in is optional. Only writing news (`upsertArticles`, MCP) needs a key.
-- Data lives in the `news_mongodb_data` volume. Back it up with `docker compose exec mongodb mongodump --archive > news.archive`.
+- Data lives in the `news` database of the shared `ecosystem-mongo` instance. Back it up with `doppler run -- docker run --rm --network ecosystem -e MONGO_PASSWORD mongo:7 sh -c 'mongodump --uri "mongodb://news:$MONGO_PASSWORD@ecosystem-mongo:27017/?authSource=admin" --db news --archive' > news.archive` from `/opt/news`.

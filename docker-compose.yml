@@ -21,21 +21,19 @@ services:
     restart: unless-stopped
     environment:
       - PORT=4000
-      - MONGODB_URI=mongodb://mongodb:27017/news
+      # Shared MongoDB (ecosystem-infra, DAN-90): own Mongo user, own database.
+      # MONGO_PASSWORD comes from Doppler news/prd via `doppler run`.
+      - MONGODB_URI=mongodb://news:${MONGO_PASSWORD:?MONGO_PASSWORD is not set}@ecosystem-mongo:27017/news?authSource=admin
       - RATE_LIMIT_PER_MIN=${RATE_LIMIT_PER_MIN:-60}
       # Shared Clerk app (yolo-ecosystem), from Doppler news/prd via `doppler run`.
       - CLERK_SECRET_KEY=${CLERK_SECRET_KEY:-}
       - CLERK_AUTHORIZED_PARTIES=${CLERK_AUTHORIZED_PARTIES:-https://news.dantepham.site}
-    depends_on:
-      - mongodb
+    networks:
+      - default
+      - ecosystem
     # No published port: the frontend nginx reaches it over the internal network.
 
-  mongodb:
-    image: mongo:7
-    restart: unless-stopped
-    volumes:
-      - mongodb_data:/data/db
-    # No published port: MongoDB has no auth, so it must never be public.
-
-volumes:
-  mongodb_data:
+networks:
+  # Created by the shared Mongo stack in ecosystem-infra; deploy that first.
+  ecosystem:
+    external: true
