@@ -32,6 +32,7 @@ Doppler `news/prd`:
 | `CLERK_SECRET_KEY` | `${shared.prd.CLERK_SECRET_KEY}` |
 | `CLERK_PUBLISHABLE_KEY` | `${shared.prd.CLERK_PUBLISHABLE_KEY}` (read by the frontend build as `VITE_CLERK_PUBLISHABLE_KEY`) |
 | `CLERK_AUTHORIZED_PARTIES` | `https://news.dantepham.site` (only this app's session tokens are accepted) |
+| `VPS_HOST`, `VPS_USERNAME`, `VPS_SSH_KEY` | `${shared.prd.VPS_HOST}` etc. (read by the deploy workflow) |
 
 Point each variable straight at `shared`: Doppler does not allow chained references.
 
@@ -39,7 +40,7 @@ Point each variable straight at `shared`: Doppler does not allow chained referen
 
 - `ci.yml` runs on pull requests and `main`: backend typecheck and tests, frontend lint and build.
 - `deploy.yml` runs on push to `main` (not for `*.md`, `.agents/**`) or by hand: builds and pushes the backend and frontend images to GHCR, copies `docker-compose.yml` and `nginx/` to `/opt/news`, then `docker compose pull && up -d` over SSH and prunes dangling images only.
-- Repository secrets: `VPS_HOST`, `VPS_USERNAME`, `VPS_SSH_KEY`, `GH_PAT` (GHCR push/pull, see Event Manager's `setup/github-pat-setup.md`), `DOPPLER_TOKEN` (read-only service token for `news/prd`, used to build the frontend with the Clerk publishable key).
+- GitHub keeps one repository secret, `DOPPLER_TOKEN` (read-only service token for `news/prd`). The workflow reads everything else from Doppler: `VPS_HOST`, `VPS_USERNAME`, `VPS_SSH_KEY` (references to `${shared.prd.*}`, masked in the logs) and `CLERK_PUBLISHABLE_KEY` for the frontend build. GHCR push and the VPS pull use the job's `GITHUB_TOKEN`, so there is no personal access token.
 - Never commit secrets, the VPS IP or personal emails.
 
 ## First API key on the server
