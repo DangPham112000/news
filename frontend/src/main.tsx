@@ -4,15 +4,18 @@ import { Provider } from 'react-redux';
 import { ApolloProvider } from '@apollo/client/react';
 import { store } from './store';
 import { apolloClient } from './lib/apolloClient';
+import { AuthProvider } from './components/auth/AuthProvider';
 import App from './App';
 import './index.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ApolloProvider client={apolloClient}>
-      <Provider store={store}>
-        <App />
-      </Provider>
-    </ApolloProvider>
+    <AuthProvider>
+      <ApolloProvider client={apolloClient}>
+        <Provider store={store}>
+          <App />
+        </Provider>
+      </ApolloProvider>
+    </AuthProvider>
   </StrictMode>,
 );

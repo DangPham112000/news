@@ -9,7 +9,7 @@ import { normalizeUrl, slugify, titleHash } from '../src/normalize.js';
 
 process.env.USE_MOCK = 'true';
 
-const server = new ApolloServer<{ agent: any }>({ typeDefs, resolvers });
+const server = new ApolloServer<{ agent: any; viewer?: any }>({ typeDefs, resolvers });
 
 const agent = { id: 'key-1', name: 'test', prefix: 'nwk_xxxxxx', createdAt: new Date().toISOString() };
 
@@ -45,6 +45,15 @@ test('upsertArticles needs an API key and is rate limited', async () => {
   } finally {
     delete process.env.RATE_LIMIT_PER_MIN;
   }
+});
+
+test('me returns the signed-in person and null when signed out', async () => {
+  assert.equal((await gql('{ me { clerkId } }', undefined, { agent: null })).data.me, null);
+  const res = await server.executeOperation(
+    { query: '{ me { clerkId } }' },
+    { contextValue: { agent: null, viewer: { clerkId: 'user_1' } } },
+  );
+  assert.equal((res.body as any).singleResult.data.me.clerkId, 'user_1');
 });
 
 test('normalizeUrl strips tracking, fragment, trailing slash', () => {

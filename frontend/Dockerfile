@@ -8,6 +8,8 @@ COPY frontend/package.json ./frontend/
 RUN pnpm install --frozen-lockfile --filter frontend
 
 COPY frontend/ ./frontend/
+ARG VITE_CLERK_PUBLISHABLE_KEY
+ENV VITE_CLERK_PUBLISHABLE_KEY=$VITE_CLERK_PUBLISHABLE_KEY
 RUN pnpm --filter frontend run build
 
 FROM nginx:alpine

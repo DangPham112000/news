@@ -14,6 +14,7 @@
   "dependencies": {
     "@apollo/server": "^5.5.1",
     "@as-integrations/express5": "^1.1.2",
+    "@clerk/backend": "^3.26.2",
     "@modelcontextprotocol/sdk": "^1.32.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",

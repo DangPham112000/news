@@ -22,6 +22,9 @@ services:
       - PORT=4000
       - MONGODB_URI=mongodb://mongodb:27017/news
       - RATE_LIMIT_PER_MIN=${RATE_LIMIT_PER_MIN:-60}
+      # Shared Clerk app (yolo-ecosystem), from Doppler news/prd via `doppler run`.
+      - CLERK_SECRET_KEY=${CLERK_SECRET_KEY:-}
+      - CLERK_AUTHORIZED_PARTIES=${CLERK_AUTHORIZED_PARTIES:-https://news.dantepham.site}
     depends_on:
       - mongodb
     # No published port: the frontend nginx reaches it over the internal network.

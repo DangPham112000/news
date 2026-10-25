@@ -7,6 +7,7 @@ import mongoose from 'mongoose';
 import { typeDefs } from './graphql/typeDefs.js';
 import { resolvers, type Context } from './graphql/resolvers.js';
 import { bearerToken, createApiKey, verifyApiKey } from './apiKeys.js';
+import { getViewer } from './auth.js';
 import { handleMcpNotAllowed, handleMcpPost } from './mcp/http.js';
 
 dotenv.config();
@@ -31,6 +32,9 @@ async function startServer() {
     console.log('✅ Connected to MongoDB');
     // Make sure the unique indexes that back dedup exist.
     await mongoose.syncIndexes();
+    if (!process.env.CLERK_SECRET_KEY) {
+      console.warn('⚠️  CLERK_SECRET_KEY not set: sign-in is off, everyone is anonymous.');
+    }
   }
 
   const server = new ApolloServer<Context>({ typeDefs, resolvers });
@@ -41,7 +45,12 @@ async function startServer() {
     cors<cors.CorsRequest>(),
     express.json({ limit: '1mb' }),
     expressMiddleware(server, {
-      context: async ({ req }): Promise<Context> => ({ agent: await verifyApiKey(bearerToken(req.headers.authorization)) }),
+      // The bearer token is either an agent's nwk_ API key or a Clerk session token from the web UI.
+      context: async ({ req }): Promise<Context> => {
+        const token = bearerToken(req.headers.authorization);
+        const [agent, viewer] = await Promise.all([verifyApiKey(token), getViewer(token)]);
+        return { agent, viewer };
+      },
     }),
   );
 
