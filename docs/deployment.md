@@ -5,18 +5,18 @@ Same shape as Event Manager: a VPS shared with other projects, nothing in this s
 ```
 Browser ─HTTPS─▶ Cloudflare (proxied, SSL mode "Flexible")
         ─HTTP:80─▶ host nginx (news.<domain> server block)
-        ─▶ 127.0.0.1:8081 ─▶ frontend container (nginx: static SPA + /graphql, /mcp proxy)
+        ─▶ 127.0.0.1:8082 ─▶ frontend container (nginx: static SPA + /graphql, /mcp proxy)
         ─▶ backend:4000 ─▶ mongodb:27017   (internal compose network only)
 ```
 
-- `docker-compose.yml` (project name `news`) runs `frontend`, `backend` and `mongodb`. Only `frontend` publishes a port, on `127.0.0.1:${APP_PORT:-8081}`. MongoDB has no auth and no published port.
+- `docker-compose.yml` (project name `news`) runs `frontend`, `backend` and `mongodb`. Only `frontend` publishes a port, on `127.0.0.1:${APP_PORT:-8082}`. MongoDB has no auth and no published port.
 - `nginx/default.conf` is the config of the **frontend container**: it serves the SPA and proxies `/graphql` and `/mcp` to the backend.
 - HTTPS is terminated by Cloudflare (or any TLS proxy in front of the host nginx). Agents send their API key to `/mcp`, so do not expose it over plain HTTP on the open internet.
 
 ## One-time VPS setup
 
 1. Create `/opt/news`, owned by the `deploy` user.
-2. Add a host nginx server block for `news.<domain>` that proxies to `http://127.0.0.1:8081` (copy the Event Manager one, change `server_name` and the port), enable it and reload nginx.
+2. Add a host nginx server block for `news.<domain>` that proxies to `http://127.0.0.1:8082` (copy the Event Manager one, change `server_name` and the port), enable it and reload nginx.
 3. Add the DNS record for `news.<domain>` (proxied by Cloudflare).
 4. Secrets come from Doppler project `news`, config `prd` (see the ecosystem-knowledge repo, `infra/doppler.md`). On the VPS, as the deploy user: `doppler configure set token <vps-news token> --scope /opt/news`. The deploy runs `doppler run -- docker compose up -d` and stops if Doppler is not set up.
 5. Optional overrides (`APP_PORT`, `RATE_LIMIT_PER_MIN`) go in Doppler too (an existing `/opt/news/.env` still works). `IMAGE_PREFIX` is set by the deploy job.
