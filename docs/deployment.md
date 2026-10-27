@@ -47,10 +47,10 @@ Point each variable straight at `shared`: Doppler does not allow chained referen
 
 ```
 cd /opt/news
-docker compose exec backend node backend/dist/cli/apikey.js create "Claude routine"
+doppler run -- docker compose exec backend node backend/dist/cli/apikey.js create "Claude routine"
 ```
 
-Copy the printed `nwk_...` key into the agent's MCP config (see [agent-usage.md](agent-usage.md)). List or revoke with `list` / `revoke <id>`.
+`doppler run` is required: compose refuses to read `docker-compose.yml` without `MONGO_PASSWORD`. Copy the printed `nwk_...` key into the agent's MCP config (see [agent-usage.md](agent-usage.md)). List or revoke with `list` / `revoke <id>`. Keys live in the shared MongoDB, so they survive redeploys.
 
 ## Notes
 

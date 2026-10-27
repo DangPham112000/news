@@ -2,7 +2,7 @@
 
 ## 1. Create an API key
 
-With `MONGODB_URI` set (in `backend/.env`):
+On the server (production), use the command in [deployment.md](deployment.md#first-api-key-on-the-server). For a local MongoDB, with `MONGODB_URI` set in `backend/.env`:
 
 ```
 pnpm --filter backend apikey create "Claude routine"   # prints the key once
