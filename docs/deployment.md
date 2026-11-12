@@ -23,7 +23,7 @@ Browser ─HTTPS─▶ Cloudflare (proxied, SSL mode "Flexible")
 
 ## Sign-in (shared Clerk app)
 
-News signs people in with the ecosystem's shared Clerk app `yolo-ecosystem`. Sign-in is optional: the feed stays public, and the "Đăng nhập" button goes to the ecosystem's Account Portal and back. The backend verifies the session token and exposes the person as `me { clerkId }`. News keeps no user table: features that belong to a person store the Clerk user id (`clerkId`).
+News signs people in with the ecosystem's shared Clerk app `yolo-ecosystem`. Sign-in is optional: the feed stays public, and the "Đăng nhập" button opens the app's own `/sign-in` page (Clerk's `<SignIn>`) and returns to the page it came from; sign-in never goes through the shared Account Portal, whose fallback is the root domain (no site there). The backend verifies the session token and exposes the person as `me { clerkId }`. News keeps no user table: features that belong to a person store the Clerk user id (`clerkId`).
 
 Doppler `news/prd`:
 
