@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { authEnabled } from '@/lib/auth';
 
 /**
- * Clerk's avatar menu when signed in, otherwise a sign-in button that goes to the
- * ecosystem's Account Portal and back. Hidden when sign-in is off.
+ * Clerk's avatar menu when signed in, otherwise a sign-in button that opens this app's
+ * /sign-in page and comes back to the current page. Hidden when sign-in is off.
  */
 export function AccountButton() {
   if (!authEnabled) return null;
